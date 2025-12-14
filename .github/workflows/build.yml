@@ -1,4 +1,4 @@
-name: Build Hecksagon
+name: Build Hecksagon Multi-Platform
 
 on:
   push:
@@ -7,24 +7,51 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  build-linux:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Install build tools
-        run: |
-          sudo apt update
-          sudo apt install -y g++
+        run: sudo apt update && sudo apt install -y g++
 
       - name: Build Hecksagon
-        run: |
-          g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-linux hecksagon.cpp
 
-      - name: Upload binary
+      - name: Upload Linux binary
         uses: actions/upload-artifact@v4
         with:
           name: hecksagon-linux
-          path: hecksagon
+          path: hecksagon-linux
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Hecksagon
+        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-macos hecksagon.cpp
+
+      - name: Upload macOS binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: hecksagon-macos
+          path: hecksagon-macos
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MSVC tools
+        run: choco install visualstudio2019buildtools --yes
+
+      - name: Build Hecksagon
+        run: |
+          g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-windows.exe hecksagon.cpp
+
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: hecksagon-windows
+          path: hecksagon-windows.exe
