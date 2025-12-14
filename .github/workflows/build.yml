@@ -1,0 +1,30 @@
+name: Build Hecksagon
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt update
+          sudo apt install -y g++
+
+      - name: Build Hecksagon
+        run: |
+          g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: hecksagon-linux
+          path: hecksagon
