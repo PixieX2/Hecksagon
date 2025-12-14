@@ -1,4 +1,4 @@
-name: Build Hecksagon (Linux + Windows)
+name: Build Hecksagon
 
 on:
   push:
@@ -7,71 +7,65 @@ on:
     branches: ["main"]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Python & g++
-        run: |
-          sudo apt update
-          sudo apt install -y g++ python3 python3-pip
+      # Linux setup
+      - name: Install build tools on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt install -y g++ python3 python3-pip
 
-      - name: Generate hw.h2
-        shell: bash
-        run: python3 Tools/generator.py
-
-      - name: Build Hecksagon
-        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-linux hecksagon.cpp
-
-      - name: Test HELLO WORLD
-        shell: bash
-        run: |
-          echo "HELLO WORLD" > expected.txt
-          ./hecksagon-linux hw.h2 > output.txt
-          diff -u expected.txt output.txt
-
-      - name: Upload Linux binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: hecksagon-linux
-          path: hecksagon-linux
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Python & Scoop
+      # Windows setup: Scoop + gcc + python
+      - name: Install Scoop + gcc + Python on Windows
+        if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
           iwr -useb get.scoop.sh | iex
           scoop install git python
-
-      - name: Install g++ via Scoop
-        shell: powershell
-        run: |
           scoop bucket add versions
           scoop install gcc
 
+      # Generate hw.h2
       - name: Generate hw.h2
         shell: bash
-        run: python Tools/generator.py
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            python3 Tools/generator.py
+          else
+            python Tools/generator.py
+          fi
 
+      # Build Hecksagon
       - name: Build Hecksagon
         shell: bash
-        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-windows.exe hecksagon.cpp
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+          else
+            g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon.exe hecksagon.cpp
+          fi
 
+      # Test HELLO WORLD
       - name: Test HELLO WORLD
         shell: bash
         run: |
-          echo "HELLO WORLD" > expected.txt
-          ./hecksagon-windows.exe hw.h2 > output.txt
+          echo -n "HELLO WORLD" > expected.txt
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            ./hecksagon hw.h2 > output.txt
+          else
+            ./hecksagon.exe hw.h2 > output.txt
+          fi
           diff -u expected.txt output.txt
 
-      - name: Upload Windows binary
+      # Upload artifact
+      - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: hecksagon-windows
-          path: hecksagon-windows.exe
+          name: hecksagon-${{ matrix.os }}
+          path: ${{ matrix.os == 'ubuntu-latest' && 'hecksagon' || 'hecksagon.exe' }}
