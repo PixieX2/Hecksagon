@@ -1,57 +1,53 @@
-name: Build Hecksagon Multi-Platform
+name: Build Hecksagon Fast
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: sudo apt update && sudo apt install -y g++
-
-      - name: Build Hecksagon
-        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-linux hecksagon.cpp
-
-      - name: Upload Linux binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: hecksagon-linux
-          path: hecksagon-linux
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build Hecksagon
-        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-macos hecksagon.cpp
-
-      - name: Upload macOS binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: hecksagon-macos
-          path: hecksagon-macos
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install MSVC tools
-        run: choco install visualstudio2019buildtools --yes
-
-      - name: Build Hecksagon
+      # Linux/macOS build tools
+      - name: Setup build tools
+        if: runner.os != 'Windows'
         run: |
-          g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-windows.exe hecksagon.cpp
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt update
+            sudo apt install -y g++
+          fi
 
-      - name: Upload Windows binary
+      # Windows: install Scoop + g++
+      - name: Install g++ on Windows
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+          iwr -useb get.scoop.sh | iex
+          scoop install git
+          scoop bucket add versions
+          scoop install gcc
+
+      - name: Build Hecksagon
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            clang++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+          else
+            g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon.exe hecksagon.cpp
+          fi
+
+      - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
-          name: hecksagon-windows
-          path: hecksagon-windows.exe
+          name: hecksagon-${{ matrix.os }}
+          path: ${{ runner.os == 'Windows' && 'hecksagon.exe' || 'hecksagon' }}
