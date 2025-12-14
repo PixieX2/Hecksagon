@@ -1,13 +1,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Hecksagon 2.0 Interpreter
-// Yes i skipped the 1.0 version... kinda 
-// The reason it's called "Hecksagon 2.0" is because it's a bit more complex then the original
-// 1.0 code was destroyed by the apocalyptic event
 
-// Impossible for humans to write by hand
-// Still fully generatable
 int main(int argc, char** argv) {
     if(argc < 2){
         cout << "Usage: " << argv[0] << " file.h2\n";
@@ -93,6 +87,3 @@ int main(int argc, char** argv) {
 
 
 
-// Difficulty: apocalyptic
-// difficulty note:
-// If you need me, ill be hiding in my bunker 
