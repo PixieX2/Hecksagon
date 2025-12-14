@@ -12,13 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: sudo apt update && sudo apt install -y g++
+      - name: Install Python & g++
+        run: |
+          sudo apt update
+          sudo apt install -y g++ python3 python3-pip
+
+      - name: Generate hw.h2
+        shell: bash
+        run: python3 Tools/generator.py
 
       - name: Build Hecksagon
         run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon-linux hecksagon.cpp
 
       - name: Test HELLO WORLD
+        shell: bash
         run: |
           echo "HELLO WORLD" > expected.txt
           ./hecksagon-linux hw.h2 > output.txt
@@ -35,18 +42,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Scoop
+      - name: Install Python & Scoop
         shell: powershell
         run: |
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
           iwr -useb get.scoop.sh | iex
-          scoop install git
+          scoop install git python
 
       - name: Install g++ via Scoop
         shell: powershell
         run: |
           scoop bucket add versions
           scoop install gcc
+
+      - name: Generate hw.h2
+        shell: bash
+        run: python Tools/generator.py
 
       - name: Build Hecksagon
         shell: bash
