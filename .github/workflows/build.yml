@@ -1,4 +1,4 @@
-name: Build Hecksagon
+name: Build Hecksagon (Rust, single-file)
 
 on:
   push:
@@ -14,19 +14,14 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout
       - uses: actions/checkout@v4
 
-      # 2. Set up environment
-      - name: Setup environment
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt update && sudo apt install -y g++ python3 python3-pip
-        shell: bash
-
-      - name: Setup environment
-        if: matrix.os == 'windows-latest'
-        run: choco install mingw -y
-        shell: powershell
+      # 2. Setup Rust
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
       # 3. Generate hw.h2
       - name: Generate hw.h2
@@ -39,15 +34,15 @@ jobs:
         run: python Tools/generator.py
         shell: powershell
 
-      # 4. Build Hecksagon
+      # 4. Compile hecksagon
       - name: Build Hecksagon
         if: matrix.os == 'ubuntu-latest'
-        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+        run: rustc -O -o hecksagon hecksagon.rs
         shell: bash
 
       - name: Build Hecksagon
         if: matrix.os == 'windows-latest'
-        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon.exe hecksagon.cpp
+        run: rustc -O -o hecksagon.exe hecksagon.rs
         shell: powershell
 
       # 5. Test HELLO WORLD
@@ -63,11 +58,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           echo -n "HELLO WORLD" > expected.txt
-          ./hecksagon.exe hw.h2 > output.txt
+          .\hecksagon.exe hw.h2 > output.txt
           fc expected.txt output.txt
         shell: powershell
 
-      # 6. Upload artifact
+      # 6. Upload binary
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
