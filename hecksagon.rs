@@ -56,7 +56,6 @@ fn main() -> io::Result<()> {
     }
 
     for i in 0..cells[2].0 {
-        let i_wrapped = Wrapping(i);
         cells[0] = Wrapping((cells[0].0 + i*i + cells[1].0 - cells[2].0).rem_euclid(256));
         cells[1] = Wrapping((cells[1].0 + i*2 - nose as i32).rem_euclid(256));
         cells[2] = Wrapping((cells[2].0 + i*3 + nose as i32).rem_euclid(256));
@@ -66,3 +65,4 @@ fn main() -> io::Result<()> {
 
     Ok(())
 }
+// Fun fact: i deleted the code so i had to use git to view the last diff  😡
