@@ -65,4 +65,3 @@ fn main() -> io::Result<()> {
 
     Ok(())
 }
-// Fun fact: i deleted the code so i had to use git to view the last diff  😡
