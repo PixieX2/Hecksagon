@@ -4,6 +4,7 @@ from collections import deque
 TARGET = "HELLO WORLD"
 
 # MUST match C++ mapping exactly
+# the c++ code will be eventually changed to rust code for better performance.
 mapping = {
     '!': (3, 0, 1, 0),
     '@': (-7, 1, 2, 1),

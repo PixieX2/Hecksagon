@@ -1,4 +1,4 @@
-name: Build Hecksagon
+name: Build Hecksagon (Rust)
 
 on:
   push:
@@ -15,21 +15,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Linux setup
-      - name: Install build tools on Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: sudo apt update && sudo apt install -y g++ python3 python3-pip
+      # Install Rust + Python (for hw.h2 generator)
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
-      # Windows setup: Scoop + gcc + python
-      - name: Install Scoop + gcc + Python on Windows
+      - name: Install Python on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt install -y python3 python3-pip
+      - name: Install Python on Windows
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
           iwr -useb get.scoop.sh | iex
-          scoop install git python
-          scoop bucket add versions
-          scoop install gcc
+          scoop install python
 
       # Generate hw.h2
       - name: Generate hw.h2
@@ -41,14 +43,13 @@ jobs:
             python Tools/generator.py
           fi
 
-      # Build Hecksagon
+      # Build Hecksagon with rustc
       - name: Build Hecksagon
-        shell: bash
         run: |
           if [ "$RUNNER_OS" = "Linux" ]; then
-            g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
+            rustc -O -o hecksagon hecksagon.rs
           else
-            g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon.exe hecksagon.cpp
+            rustc -O -o hecksagon.exe hecksagon.rs
           fi
 
       # Test HELLO WORLD

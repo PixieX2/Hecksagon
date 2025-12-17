@@ -1,8 +1,8 @@
-# Hecksagon Interpreter Makefile
+# Hecksagon Interpreter Makefile (Rust version)
 
 # Compiler and flags
-CXX = g++
-CXXFLAGS = -O2 -std=c++17
+RUSTC = rustc
+RUSTFLAGS = -O
 
 # Detect OS
 ifeq ($(OS),Windows_NT)
@@ -23,13 +23,13 @@ endif
 TARGET = hecksagon$(EXE_EXT)
 
 # Source files
-SRC = hecksagon.cpp
+SRC = hecksagon.rs
 
 # Default rule: compile
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRC)
+	$(RUSTC) $(RUSTFLAGS) -o $(TARGET) $(SRC)
 
 # Install target
 install: $(TARGET)
@@ -40,3 +40,5 @@ install: $(TARGET)
 # Clean up
 clean:
 	$(RM) $(TARGET)
+
+.PHONY: all install clean
