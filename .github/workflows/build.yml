@@ -15,16 +15,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Install Rust + Python (for hw.h2 generator)
+      # Install Rust
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
 
+      # Install Python
       - name: Install Python on Linux
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt update && sudo apt install -y python3 python3-pip
+
       - name: Install Python on Windows
         if: matrix.os == 'windows-latest'
         shell: powershell
@@ -34,35 +36,43 @@ jobs:
           scoop install python
 
       # Generate hw.h2
-      - name: Generate hw.h2
+      - name: Generate hw.h2 on Linux
+        if: matrix.os == 'ubuntu-latest'
         shell: bash
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            python3 Tools/generator.py
-          else
-            python Tools/generator.py
-          fi
+        run: python3 Tools/generator.py
+
+      - name: Generate hw.h2 on Windows
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: python Tools/generator.py
 
       # Build Hecksagon with rustc
-      - name: Build Hecksagon
-        run: |
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            rustc -O -o hecksagon hecksagon.rs
-          else
-            rustc -O -o hecksagon.exe hecksagon.rs
-          fi
+      - name: Build Hecksagon on Linux
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: rustc -O -o hecksagon hecksagon.rs
+
+      - name: Build Hecksagon on Windows
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: rustc -O -o hecksagon.exe hecksagon.rs
 
       # Test HELLO WORLD
-      - name: Test HELLO WORLD
+      - name: Test HELLO WORLD on Linux
+        if: matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
           echo -n "HELLO WORLD" > expected.txt
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            ./hecksagon hw.h2 > output.txt
-          else
-            ./hecksagon.exe hw.h2 > output.txt
-          fi
+          ./hecksagon hw.h2 > output.txt
           diff -u expected.txt output.txt
+
+      - name: Test HELLO WORLD on Windows
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          echo -n "HELLO WORLD" > expected.txt
+          ./hecksagon.exe hw.h2 > output.txt
+          Compare-Object (Get-Content expected.txt) (Get-Content output.txt)
 
       # Upload artifact
       - name: Upload binary
