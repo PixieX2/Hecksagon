@@ -1,4 +1,4 @@
-name: Build Hecksagon (Rust)
+name: Build Hecksagon
 
 on:
   push:
@@ -12,69 +12,62 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+
     steps:
+      # 1. Checkout code
       - uses: actions/checkout@v4
 
-      # Install Rust
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      # Install Python
-      - name: Install Python on Linux
+      # 2. Set up environment
+      - name: Setup environment
         if: matrix.os == 'ubuntu-latest'
-        run: sudo apt update && sudo apt install -y python3 python3-pip
-
-      - name: Install Python on Windows
-        if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: |
-          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-          iwr -useb get.scoop.sh | iex
-          scoop install python
-
-      # Generate hw.h2
-      - name: Generate hw.h2 on Linux
-        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt install -y g++ python3 python3-pip
         shell: bash
+
+      - name: Setup environment
+        if: matrix.os == 'windows-latest'
+        run: choco install mingw -y
+        shell: powershell
+
+      # 3. Generate hw.h2
+      - name: Generate hw.h2
+        if: matrix.os == 'ubuntu-latest'
         run: python3 Tools/generator.py
+        shell: bash
 
-      - name: Generate hw.h2 on Windows
+      - name: Generate hw.h2
         if: matrix.os == 'windows-latest'
-        shell: powershell
         run: python Tools/generator.py
-
-      # Build Hecksagon with rustc
-      - name: Build Hecksagon on Linux
-        if: matrix.os == 'ubuntu-latest'
-        shell: bash
-        run: rustc -O -o hecksagon hecksagon.rs
-
-      - name: Build Hecksagon on Windows
-        if: matrix.os == 'windows-latest'
         shell: powershell
-        run: rustc -O -o hecksagon.exe hecksagon.rs
 
-      # Test HELLO WORLD
-      - name: Test HELLO WORLD on Linux
+      # 4. Build Hecksagon
+      - name: Build Hecksagon
         if: matrix.os == 'ubuntu-latest'
+        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon hecksagon.cpp
         shell: bash
+
+      - name: Build Hecksagon
+        if: matrix.os == 'windows-latest'
+        run: g++ -std=c++17 -O2 -Wall -Wextra -o hecksagon.exe hecksagon.cpp
+        shell: powershell
+
+      # 5. Test HELLO WORLD
+      - name: Test HELLO WORLD
+        if: matrix.os == 'ubuntu-latest'
         run: |
           echo -n "HELLO WORLD" > expected.txt
           ./hecksagon hw.h2 > output.txt
           diff -u expected.txt output.txt
+        shell: bash
 
-      - name: Test HELLO WORLD on Windows
+      - name: Test HELLO WORLD
         if: matrix.os == 'windows-latest'
-        shell: powershell
         run: |
           echo -n "HELLO WORLD" > expected.txt
           ./hecksagon.exe hw.h2 > output.txt
-          Compare-Object (Get-Content expected.txt) (Get-Content output.txt)
+          fc expected.txt output.txt
+        shell: powershell
 
-      # Upload artifact
+      # 6. Upload artifact
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
