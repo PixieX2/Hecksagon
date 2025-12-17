@@ -14,39 +14,40 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # 1. Checkout
-      - uses: actions/checkout@v4
+      # 1. Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       # 2. Setup Rust
-      - uses: actions-rs/toolchain@v1
+      - name: Setup Rust
+        uses: rust-lang/setup-rust@v1
         with:
-          toolchain: stable
-          override: true
+          rust-version: stable
 
       # 3. Generate hw.h2
-      - name: Generate hw.h2
+      - name: Generate hw.h2 (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: python3 Tools/generator.py
         shell: bash
 
-      - name: Generate hw.h2
+      - name: Generate hw.h2 (Windows)
         if: matrix.os == 'windows-latest'
         run: python Tools/generator.py
         shell: powershell
 
-      # 4. Compile hecksagon
-      - name: Build Hecksagon
+      # 4. Compile Hecksagon
+      - name: Build Hecksagon (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: rustc -O -o hecksagon hecksagon.rs
         shell: bash
 
-      - name: Build Hecksagon
+      - name: Build Hecksagon (Windows)
         if: matrix.os == 'windows-latest'
         run: rustc -O -o hecksagon.exe hecksagon.rs
         shell: powershell
 
       # 5. Test HELLO WORLD
-      - name: Test HELLO WORLD
+      - name: Test HELLO WORLD (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           echo -n "HELLO WORLD" > expected.txt
@@ -54,7 +55,7 @@ jobs:
           diff -u expected.txt output.txt
         shell: bash
 
-      - name: Test HELLO WORLD
+      - name: Test HELLO WORLD (Windows)
         if: matrix.os == 'windows-latest'
         run: |
           echo -n "HELLO WORLD" > expected.txt
