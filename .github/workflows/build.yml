@@ -14,12 +14,29 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Cache Rust toolchain
+      - name: Cache Rust toolchain
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.rustup
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: rust-toolchain-${{ runner.os }}-${{ hashFiles('hecksagon.rs') }}
+
+      # 3. Setup Rust
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
+      # 4. Generate hw.h2
       - name: Generate hw.h2 (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: python3 Tools/generator.py
@@ -30,6 +47,7 @@ jobs:
         run: python Tools/generator.py
         shell: powershell
 
+      # 5. Compile Hecksagon
       - name: Build Hecksagon (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: rustc -O -o hecksagon hecksagon.rs
@@ -40,6 +58,7 @@ jobs:
         run: rustc -O -o hecksagon.exe hecksagon.rs
         shell: powershell
 
+      # 6. Test HELLO WORLD
       - name: Test HELLO WORLD (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -50,12 +69,14 @@ jobs:
 
       - name: Test HELLO WORLD (Windows)
         if: matrix.os == 'windows-latest'
-        run: |
-          echo -n "HELLO WORLD" > expected.txt
-          .\hecksagon.exe hw.h2 > output.txt
-          fc expected.txt output.txt
         shell: powershell
+        run: |
+          "HELLO WORLD" | Out-File expected.txt -NoNewline
+          .\hecksagon.exe hw.h2 | Out-File output.txt -NoNewline
+          $diff = Compare-Object (Get-Content expected.txt) (Get-Content output.txt)
+          if ($diff) { Write-Error "HELLO WORLD test failed" }
 
+      # 7. Upload binary
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
