@@ -14,17 +14,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Rust
       - name: Setup Rust
-        uses: rust-lang/setup-rust@v1
-        with:
-          rust-version: stable
+        uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      # 3. Generate hw.h2
       - name: Generate hw.h2 (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: python3 Tools/generator.py
@@ -35,7 +30,6 @@ jobs:
         run: python Tools/generator.py
         shell: powershell
 
-      # 4. Compile Hecksagon
       - name: Build Hecksagon (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: rustc -O -o hecksagon hecksagon.rs
@@ -46,7 +40,6 @@ jobs:
         run: rustc -O -o hecksagon.exe hecksagon.rs
         shell: powershell
 
-      # 5. Test HELLO WORLD
       - name: Test HELLO WORLD (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -63,7 +56,6 @@ jobs:
           fc expected.txt output.txt
         shell: powershell
 
-      # 6. Upload binary
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
