@@ -2,6 +2,14 @@ use std::env;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::num::Wrapping;
+use std::collections::HashMap;
+
+#[derive(Clone, Copy)]
+struct CmdEffect {
+    delta: [i32; 3],
+    flip: bool,
+    output: bool,
+}
 
 fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
@@ -14,44 +22,40 @@ fn main() -> io::Result<()> {
     let mut code = String::new();
     file.read_to_string(&mut code)?;
 
-    let mut cells = [Wrapping(0i32); 3]; // cell=0, shadow=1, ghost=2
+    let mut cells = [Wrapping(0i32); 3]; // cell, shadow, ghost
     let mut nose = false;
-    let debug = false;
+
+    // Lookup table for commands
+    let effects: HashMap<char, CmdEffect> = [
+        ('!', CmdEffect { delta: [3, 1, 0], flip: false, output: false }),
+        ('@', CmdEffect { delta: [-7, 2, 1], flip: true, output: false }),
+        ('#', CmdEffect { delta: [5, -1, 3], flip: false, output: false }),
+        ('$', CmdEffect { delta: [0, 0, 0], flip: false, output: true }),
+        ('~', CmdEffect { delta: [0, 0, 0], flip: true, output: false }),
+        ('%', CmdEffect { delta: [1, 3, -2], flip: false, output: false }),
+        ('^', CmdEffect { delta: [-3, 0, 5], flip: false, output: false }),
+        ('&', CmdEffect { delta: [2, -2, 0], flip: true, output: false }),
+        ('*', CmdEffect { delta: [4, 1, 1], flip: false, output: false }),
+        ('(', CmdEffect { delta: [-2, 0, -1], flip: true, output: false }),
+        (')', CmdEffect { delta: [0, 4, 0], flip: false, output: false }),
+        ('_', CmdEffect { delta: [0, 0, 1], flip: false, output: false }),
+        ('+', CmdEffect { delta: [7, -3, 2], flip: false, output: false }),
+        ('\n', CmdEffect { delta: [0, 0, 0], flip: false, output: false }),
+].into_iter().copied().collect();
+
 
     for cmd in code.chars() {
-        let mut d = [Wrapping(0i32); 3];
-        let mut flip = false;
+        if let Some(effect) = effects.get(&cmd) {
+            for i in 0..3 {
+                cells[i] += Wrapping(effect.delta[i]);
+                cells[i] = Wrapping(cells[i].0.rem_euclid(256));
+            }
 
-        match cmd {
-            '!' => { d[0] += Wrapping(3); d[1] += Wrapping(1); }
-            '@' => { d[0] += Wrapping(-7); flip = true; d[1] += Wrapping(2); d[2] += Wrapping(1); }
-            '#' => { d[0] += Wrapping(5); d[1] += Wrapping(-1); d[2] += Wrapping(3); }
-            '$' => {}
-            '~' => { flip = true; }
-            '%' => { d[0] += Wrapping(1); d[1] += Wrapping(3); d[2] += Wrapping(-2); }
-            '^' => { d[0] += Wrapping(-3); d[2] += Wrapping(5); }
-            '&' => { d[0] += Wrapping(2); flip = true; d[1] += Wrapping(-2); }
-            '*' => { d[0] += Wrapping(4); d[1] += Wrapping(1); d[2] += Wrapping(1); }
-            '(' => { d[0] += Wrapping(-2); flip = true; d[2] += Wrapping(-1); }
-            ')' => { d[1] += Wrapping(4); }
-            '_' => { d[2] += Wrapping(1); }
-            '+' => { d[0] += Wrapping(7); d[1] += Wrapping(-3); d[2] += Wrapping(2); }
-            _ => continue,
-        }
-
-        for i in 0..3 {
-            cells[i] = Wrapping((cells[i].0 + d[i].0).rem_euclid(256));
-        }
-        if flip { nose ^= true; }
-
-        if cmd == '$' {
-            let out = ((cells[0].0 + cells[1].0 + cells[2].0) & 0xFF) as u8;
-            io::stdout().write_all(&[out])?;
-        }
-
-        if debug {
-            eprintln!("[DEBUG] cmd={} cell={} shadow={} ghost={} nose={}", 
-                      cmd, cells[0].0, cells[1].0, cells[2].0, nose as u8);
+            if effect.flip { nose ^= true; }
+            if effect.output {
+                let out = ((cells[0].0 + cells[1].0 + cells[2].0) & 0xFF) as u8;
+                io::stdout().write_all(&[out])?;
+            }
         }
     }
 

@@ -51,6 +51,7 @@ endif
 clean:
 ifeq ($(OS),Windows_NT)
 	powershell -Command "if (Test-Path '$(TARGET)') { Remove-Item -Force '$(TARGET)' }"
+	powershell -Command "if (Test-Path '$(TARGET).pdb') { Remove-Item -Force '$(TARGET).pdb' }" 
 else
 	$(RM)
 endif
