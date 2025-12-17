@@ -71,3 +71,4 @@ print("\nGenerated hw.h2")
 
 with open("hw.h2", "w") as f:
     f.write(program)
+# BIG SHOUTOUT TO THE HOT POTATOES
