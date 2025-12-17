@@ -5,6 +5,7 @@ TARGET = "HELLO WORLD"
 
 # MUST match C++ mapping exactly
 # the c++ code will be eventually changed to rust code for better performance.
+# EDIT: now it's rust yay :D
 mapping = {
     '!': (3, 0, 1, 0),
     '@': (-7, 1, 2, 1),
