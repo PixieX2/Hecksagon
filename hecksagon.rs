@@ -38,6 +38,29 @@ fn main() -> io::Result<()> {
         eprintln!("Usage: {} file.h2", args[0]);
         std::process::exit(1);
     }
+    else if &args [1] == "-v" {
+        println!("v3.x (Impossible to determine exact version because this was not created using cargo.)"); 
+        
+    }
+    else if &args [1] == "-h" {
+        println!("Usage: {} file.h2", args[0]);
+    }
+    else if &args [1] == "--help" {
+        println!("Usage: {} file.h2", args[0]);
+
+    }
+    else if &args [1] == "--version" {
+        println!("v3.x (Impossible to determine exact version because this was not created using cargo.)");
+
+    }
+    else if &args [1] == "--stdin" {
+        println!("Not yet implemented, and probably never will be. if you REALLY want to do that, just do PR please.");
+        
+    }
+    else if &args [1] == "--fhelp" {
+        println!("do a PR if you know how it works and want to add full help. It's not that hard unless you only use python or something like that. I planned to make this help page, but I don't have the time to do it.");
+    }
+
 
     let mut file = File::open(&args[1])?;
     let mut code = String::new();
