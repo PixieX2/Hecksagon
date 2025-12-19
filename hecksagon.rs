@@ -94,6 +94,7 @@ fn main() -> io::Result<()> {
     // Post-loop mixing
     let cell2_val = memory.access(current_page, 2).0.max(0) as usize;
     for i in 0..cell2_val {
+        let i = i as i32;
         {
             let c0 = memory.access(current_page, 0);
             let c1_val = memory.access(current_page, 1).0;
