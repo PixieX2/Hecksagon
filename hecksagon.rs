@@ -93,28 +93,36 @@ fn main() -> io::Result<()> {
 
     // Post-loop mixing
     let cell2_val = memory.access(current_page, 2).0.max(0) as usize;
-    for i in 0..cell2_val {
-        let i = i as i32;
-        {
-            let c0 = memory.access(current_page, 0);
-            let c1_val = memory.access(current_page, 1).0;
-            let c2_val = memory.access(current_page, 2).0;
-            *c0 = Wrapping((c0.0 + i*i as i32 + c1_val - c2_val) & 0xFF);
-        }
-        {
-            let c1 = memory.access(current_page, 1);
-            *c1 = Wrapping((c1.0 + i as i32*2 - nose as i32) & 0xFF);
-        }
-        {
-            let c2 = memory.access(current_page, 2);
-            *c2 = Wrapping((c2.0 + i as i32*3 + nose as i32) & 0xFF);
-        }
-    }
+     for i in 0..cell2_val {
+     let i = i as i32; // cast once
 
-    let _checksum = (memory.access(current_page, 0).0
-                    + memory.access(current_page, 1).0
-                    + memory.access(current_page, 2).0
-                    + nose as i32) & 0xFF;
+     // borrow c1 and c2 separately
+     let c1_val;
+     let c2_val;
+     {
+         let c1 = memory.access(current_page, 1);
+         c1_val = c1.0;
+     }
+     {
+         let c2 = memory.access(current_page, 2);
+         c2_val = c2.0;
+     }
+
+     {
+         let c0 = memory.access(current_page, 0);
+         *c0 = Wrapping((c0.0 + i*i + c1_val - c2_val) & 0xFF);
+     }
+
+     {
+         let c1 = memory.access(current_page, 1);
+         *c1 = Wrapping((c1.0 + i*2 - nose as i32) & 0xFF);
+     }
+
+     {
+         let c2 = memory.access(current_page, 2);
+         *c2 = Wrapping((c2.0 + i*3 + nose as i32) & 0xFF);
+     }
+ }
 
     Ok(())
 }
