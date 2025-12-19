@@ -21,6 +21,8 @@ mapping = {
     '+': (7, 0, -3, 2),
 }
 
+
+
 OPS = list(mapping.keys())
 
 def step(state, cmd):
