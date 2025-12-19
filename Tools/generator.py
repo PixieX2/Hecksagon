@@ -1,6 +1,7 @@
 import sys
 from collections import deque
 
+
 TARGET = "HELLO WORLD"
 
 # Command mapping: (delta_cell, flip_nose, delta_shadow, delta_ghost)
@@ -79,4 +80,14 @@ print("\nGenerated hw.h2")
 with open("hw.h2", "w") as f:
     f.write(program)
 
-print("Done! BIG SHOUTOUT TO THE HOT POTATOES 🎉")
+
+text = """
+******************************************************
+*                                                    *
+*   DONE! BIG SHOUTOUT TO THE HOT POTATOES           *
+*   FOR MAKING THIS POSSIBLE !!!                     *
+*                                                    *
+******************************************************
+"""
+
+print(text)
