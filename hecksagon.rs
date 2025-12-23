@@ -148,9 +148,6 @@ fn main() -> io::Result<()> {
         println!("Usage: {} file.h2", args[0]);
     } else if &args[1] == "--stdin" {
         repl(&mut memory, &effects)?;
-
-    } else if &args[1] == "--fhelp" {
-        println!("do a PR if you know how it works and want to add full help. It's not that hard unless you only use python or something like that. I planned to make this help page, but I don't have the time to do it.");
     } else {
         let mut file = File::open(&args[1])?;
         let mut code = String::new();
